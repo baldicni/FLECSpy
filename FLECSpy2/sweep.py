@@ -91,10 +91,15 @@ def sweep_load_1d(cfg, mass_vec, compression=None, want_dynamics=True,
                 theta_warm = static['theta']
         except Exception as e:
             if verbose:
-                print(f'  [Mass={M:.4g}] non convergente: {e}')
+                print(f'  [Mass={M:.4g}] not convergent: {e}')
 
         if verbose:
-            print(f'  Mass={M:.4g} kg  f1={f1[k]:.6g} Hz  '
+            if want_dynamics:
+                print(f'  Mass={M:.4g} kg  f1={f1[k]:.6g} Hz  '
+                  f'lambda={lam[k]:.4g} N  htip={htip[k]*1e3:.4g} mm  '
+                  f'smax={smax[k]/1e6:.4g} MPa')
+            else:
+                print(f'  Mass={M:.4g} kg'
                   f'lambda={lam[k]:.4g} N  htip={htip[k]*1e3:.4g} mm  '
                   f'smax={smax[k]/1e6:.4g} MPa')
 
@@ -150,8 +155,8 @@ def sweep_load_compression_2d(cfg, mass_vec, comp_vec, want_dynamics=True,
 
         if verbose:
             ok = int(np.sum(res['converged']))
-            print(f'compression={comp:.4f}  (riga {ic + 1}/{nC})  '
-                  f'convergenti: {ok}/{nM}')
+            print(f'compression={comp:.4f}  (row {ic + 1}/{nC})  '
+                  f'convergent: {ok}/{nM}')
 
     return dict(mass_vec=np.asarray(mass_vec, dtype=float),
                 comp_vec=np.asarray(comp_vec, dtype=float),

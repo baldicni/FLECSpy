@@ -14,6 +14,7 @@ I dati grezzi possono essere salvati in CSV impostando SAVE_CSV.
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  
 
+import time
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -24,7 +25,7 @@ from FLECSpy2.sweep import sweep_load_1d, save_csv
 # ===================== CONFIGURAZIONE SWEEP =====================
 MASS_MIN = 0.25        # [kg]
 MASS_MAX = 0.50        # [kg]
-N_MASS = 80
+N_MASS = 160
 
 # Una o piu' compressioni xb/lb. Per una sola curva: [0.9740].
 # Per piu' curve: [0.9710, 0.9725, 0.9740].
@@ -36,6 +37,7 @@ SAVE_CSV = None            # es. 'freq_vs_load.csv'; None = non salvare
 
 
 def main():
+    t_start = time.time()
     cfg = configFLECS()
     mass_vec = np.linspace(MASS_MIN, MASS_MAX, N_MASS)
 
@@ -74,7 +76,7 @@ def main():
             ok = res['converged']
             plt.plot(res['mass'][ok], res['f1'][ok], '-', linewidth=2,
                      label=f'$x_b/l_b$ = {comp:.4f}')
-            print(f'compression {comp:.4f}: {int(ok.sum())}/{len(mass_vec)} convergenti')
+            print(f'compression {comp:.4f}: {int(ok.sum())}/{len(mass_vec)} convergent')
         plt.legend(fontsize=11, title='Compression')
 
         if SAVE_CSV:
@@ -83,6 +85,11 @@ def main():
                                  want_dynamics=True)
             save_csv(SAVE_CSV, [res0['mass'], res0['f1']],
                      ['Mass_kg', 'f1_Hz'])
+
+
+    totalTime = time.time() - t_start
+    print('')
+    print('Total execution time: {:.3f} s'.format(totalTime))   
 
     plt.xlabel('Vertical load [kg]', fontsize=13)
     plt.ylabel(r'Frequency [Hz]', fontsize=13)

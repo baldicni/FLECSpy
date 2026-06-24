@@ -13,6 +13,7 @@ cambia segno.
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  
 
+import time
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import TwoSlopeNorm
@@ -36,6 +37,7 @@ SHOW_SURFACE = True
 
 
 def main():
+    t_start = time.time()
     cfg = configFLECS()
     mass_vec = np.linspace(MASS_MIN, MASS_MAX, N_MASS)
     comp_vec = np.linspace(COMP_MIN, COMP_MAX, N_COMP)
@@ -44,7 +46,11 @@ def main():
     g = sweep_load_compression_2d(cfg, mass_vec, comp_vec,
                                   want_dynamics=False, verbose=True)
     LAM = g['LAMBDA']
-
+    
+    totalTime = time.time() - t_start
+    print('')
+    print('Total execution time: {:.3f} s'.format(totalTime))  
+    
     # Scelta della colormap in base ai dati:
     #  - se lambda ATTRAVERSA lo zero (sia valori >0 sia <0), usa una colormap
     #    divergente centrata su zero (blu<0, bianco=0, rosso>0) e disegna la

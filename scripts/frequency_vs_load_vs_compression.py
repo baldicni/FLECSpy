@@ -9,6 +9,7 @@ Modifica i parametri nella sezione CONFIGURAZIONE SWEEP.
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  
 
+import time
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -17,13 +18,13 @@ from FLECSpy2.sweep import sweep_load_compression_2d
 
 
 # ===================== CONFIGURAZIONE SWEEP =====================
-MASS_MIN = 0.1
+MASS_MIN = 0.30
 MASS_MAX = 0.50
-N_MASS = 200
+N_MASS = 40
 
-COMP_MIN = 0.9505
+COMP_MIN = 0.9705
 COMP_MAX = 0.9755
-N_COMP = 200
+N_COMP = 40
 
 SHOW_HEATMAP = True
 SHOW_SURFACE = True
@@ -31,6 +32,7 @@ SHOW_SURFACE = True
 
 
 def main():
+    t_start = time.time()
     cfg = configFLECS()
     mass_vec = np.linspace(MASS_MIN, MASS_MAX, N_MASS)
     comp_vec = np.linspace(COMP_MIN, COMP_MAX, N_COMP)
@@ -39,7 +41,11 @@ def main():
     g = sweep_load_compression_2d(cfg, mass_vec, comp_vec,
                                   want_dynamics=True, verbose=True)
     F1 = g['F1']
-
+    
+    totalTime = time.time() - t_start
+    print('')
+    print('Total execution time: {:.3f} s'.format(totalTime))  
+    
     if SHOW_HEATMAP:
         plt.figure(figsize=(7.5, 5.5))
         # extent: [xmin,xmax,ymin,ymax]; origin lower per asse y crescente

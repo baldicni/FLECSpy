@@ -9,6 +9,7 @@ Solo statica: non serve calcolare la dinamica, quindi e' veloce.
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  
 
+import time
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -29,6 +30,7 @@ SAVE_CSV = None        # es. 'tip_vs_load.csv'; None = non salvare
 
 
 def main():
+    t_start = time.time()
     cfg = configFLECS()
     mass_vec = np.linspace(MASS_MIN, MASS_MAX, N_MASS)
 
@@ -50,6 +52,11 @@ def main():
 
     if len(COMPRESSIONS) > 1:
         plt.legend(fontsize=11, title='Compression')
+
+    totalTime = time.time() - t_start
+    print('')
+    print('Total execution time: {:.3f} s'.format(totalTime))  
+
 
     plt.xlabel('Vertical load [kg]', fontsize=13)
     plt.ylabel('Tip height [mm]', fontsize=13)
