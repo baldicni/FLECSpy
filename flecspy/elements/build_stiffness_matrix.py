@@ -22,7 +22,7 @@ MATLAB ".'" -> '.T'
 """
 
 import numpy as np
-from FLECSpy2.elements.blade_potential import bladePotential
+from flecspy.elements.blade_potential import bladePotential
 
 
 def buildStiffnessMatrix(theta_eq, p, relStep=None):

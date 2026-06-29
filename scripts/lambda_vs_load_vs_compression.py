@@ -18,8 +18,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import TwoSlopeNorm
 
-from FLECSpy2.config import configFLECS
-from FLECSpy2.sweep import sweep_load_compression_2d
+from flecspy.config import configFLECS
+from flecspy.sweep import sweep_load_compression_2d
 
 
 # ===================== CONFIGURAZIONE SWEEP =====================

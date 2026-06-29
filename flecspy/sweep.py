@@ -22,7 +22,7 @@ lunghezza), perche' e' la quantita' fisicamente parlante. xb = compression*lb.
 import copy
 import numpy as np
 
-from FLECSpy2.core import build_params, solve_equilibrium, solve_dynamics
+from flecspy.core import build_params, solve_equilibrium, solve_dynamics
 
 
 def _clone_params(p):

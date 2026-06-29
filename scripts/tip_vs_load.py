@@ -13,17 +13,17 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 
-from FLECSpy2.config import configFLECS
-from FLECSpy2.sweep import sweep_load_1d, save_csv
+from flecspy.config import configFLECS
+from flecspy.sweep import sweep_load_1d, save_csv
 
 
 # ===================== CONFIGURAZIONE SWEEP =====================
-MASS_MIN = 0.25         # [kg]
-MASS_MAX = 0.5        # [kg]
-N_MASS = 100
+MASS_MIN = 0.38        # [kg]
+MASS_MAX = 0.42        # [kg]
+N_MASS = 80
 
 # Una o piu' compressioni xb/lb.
-COMPRESSIONS = [0.9710]
+COMPRESSIONS = [0.9706]
 
 SAVE_CSV = None        # es. 'tip_vs_load.csv'; None = non salvare
 # ===============================================================
@@ -60,7 +60,7 @@ def main():
 
     plt.xlabel('Vertical load [kg]', fontsize=13)
     plt.ylabel('Tip height [mm]', fontsize=13)
-    plt.title('Tip height vs vertical load', fontsize=14)
+    plt.title('Tip height vs vertical load - Stability', fontsize=14)
     plt.grid(True, alpha=0.3)
     plt.box(True)
     plt.tight_layout()

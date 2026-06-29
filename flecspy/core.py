@@ -34,15 +34,15 @@ import sympy as sp
 from scipy.optimize import minimize, NonlinearConstraint
 from scipy.linalg import eigh
 
-from FLECSpy2.elements.cell_constants import cellConstants
-from FLECSpy2.elements.blade_maps import buildBladeMaps
-from FLECSpy2.elements.blade_potential import bladePotential
-from FLECSpy2.elements.blade_constraint import bladeConstraint
-from FLECSpy2.elements.build_mass_matrix import buildMassMatrix
-from FLECSpy2.elements.build_stiffness_matrix import buildStiffnessMatrix
-from FLECSpy2.elements.build_constraint_derivatives import buildConstraintDerivatives
-from FLECSpy2.elements.build_constraint_reduction import buildConstraintReduction
-from FLECSpy2.elements.blade_clamp_moments import bladeClampMoments
+from flecspy.elements.cell_constants import cellConstants
+from flecspy.elements.blade_maps import buildBladeMaps
+from flecspy.elements.blade_potential import bladePotential
+from flecspy.elements.blade_constraint import bladeConstraint
+from flecspy.elements.build_mass_matrix import buildMassMatrix
+from flecspy.elements.build_stiffness_matrix import buildStiffnessMatrix
+from flecspy.elements.build_constraint_derivatives import buildConstraintDerivatives
+from flecspy.elements.build_constraint_reduction import buildConstraintReduction
+from flecspy.elements.blade_clamp_moments import bladeClampMoments
 
 
 # =====================================================================
@@ -306,7 +306,8 @@ def solve_dynamics(p, static, cfg):
     sel = order[:neig]
     evals = np.real(evals_all[sel])
     modes = Vr_all[:, sel]
-    freqs = np.sqrt(np.maximum(evals, 0)) / (2 * np.pi)
+    #freqs = np.sqrt(np.maximum(evals, 0)) / (2 * np.pi)
+    freqs = np.emath.sqrt(evals) / (2 * np.pi)
 
     return dict(Mtot=Mtot, Kfull=Kfull, Ktot=Ktot, Mred=Mred, Kred=Kred,
                 freqs=freqs, evals=evals, modes=modes,

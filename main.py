@@ -19,8 +19,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import time
 import numpy as np
 
-from FLECSpy2.config import configFLECS
-from FLECSpy2.core import build_params, solve_equilibrium, solve_dynamics
+from flecspy.config import configFLECS
+from flecspy.core import build_params, solve_equilibrium, solve_dynamics
 
 
 def main():
@@ -65,7 +65,7 @@ def main():
     print('Total execution time: {:.3f} s'.format(totalTime))    
 
     # --- PLOT ---
-    from FLECSpy2.plots import (plot_blade_shape, plot_profile,plot_stress, plot_modes)
+    from flecspy.plots import (plot_blade_shape, plot_profile,plot_stress, plot_modes)
     import matplotlib.pyplot as plt        
 
     plot_blade_shape(p, extra)

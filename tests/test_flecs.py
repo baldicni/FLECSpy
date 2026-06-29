@@ -31,7 +31,7 @@ from conftest import load_golden, relnorm
 # =====================================================================
 class TestCellConstants:
     def test_against_golden(self, cfg):
-        from FLECSpy2.elements.cell_constants import cellConstants
+        from flecspy.elements.cell_constants import cellConstants
         N = cfg['N']
         expr = sp.sympify(cfg['type'].replace('csi', 'psi'))
         dtheta, dl, w, m, K = cellConstants(
@@ -55,7 +55,7 @@ class TestCellConstants:
 class TestBladeMaps:
     @pytest.mark.parametrize('branch,suffix', [(True, 'tipTrue'), (False, 'tipFalse')])
     def test_against_golden(self, cfg, branch, suffix):
-        from FLECSpy2.elements.blade_maps import buildBladeMaps
+        from flecspy.elements.blade_maps import buildBladeMaps
         Jd, Jm, cd, cm = buildBladeMaps(cfg['N'], branch, cfg['ain'], cfg['aout'])
         # Jd, Jm sono di soli 0/+-1/0.5 -> attesi bit-per-bit
         assert np.allclose(Jd, load_golden(f'golden_Jd_{suffix}.csv'), rtol=0, atol=1e-14)
@@ -70,7 +70,7 @@ class TestBladeMaps:
 # =====================================================================
 class TestBladePotential:
     def test_U_and_G_against_golden(self, p, theta0):
-        from FLECSpy2.elements.blade_potential import bladePotential
+        from flecspy.elements.blade_potential import bladePotential
         # NB: theta0 golden e quello ricostruito coincidono a 1e-16; uso il golden
         th = load_golden('golden_theta0.csv').reshape(-1)
         U, G = bladePotential(th, p)
@@ -83,7 +83,7 @@ class TestBladePotential:
 
     def test_gradient_matches_finite_difference(self, p, theta0):
         # coerenza interna: grad analitico vs FD del potenziale
-        from FLECSpy2.elements.blade_potential import bladePotential
+        from flecspy.elements.blade_potential import bladePotential
         def U(th): return bladePotential(th, p)[0]
         _, G = bladePotential(theta0, p)
         G = G.reshape(-1)
@@ -102,19 +102,19 @@ class TestBladePotential:
 # =====================================================================
 class TestMassMatrix:
     def test_Mtot_against_golden(self, p):
-        from FLECSpy2.elements.build_mass_matrix import buildMassMatrix
+        from flecspy.elements.build_mass_matrix import buildMassMatrix
         th = load_golden('golden_theta0.csv').reshape(-1)
         _, _, _, Mtot, _, _ = buildMassMatrix(th, p)
         assert np.allclose(Mtot, load_golden('golden_Mtot.csv'), rtol=1e-12, atol=0)
 
     def test_Mtot_symmetric(self, p):
-        from FLECSpy2.elements.build_mass_matrix import buildMassMatrix
+        from flecspy.elements.build_mass_matrix import buildMassMatrix
         th = load_golden('golden_theta0.csv').reshape(-1)
         _, _, _, Mtot, _, _ = buildMassMatrix(th, p)
         assert np.linalg.norm(Mtot - Mtot.T) < 1e-18
 
     def test_Mtot_positive_semidefinite(self, p):
-        from FLECSpy2.elements.build_mass_matrix import buildMassMatrix
+        from flecspy.elements.build_mass_matrix import buildMassMatrix
         th = load_golden('golden_theta0.csv').reshape(-1)
         _, _, _, Mtot, _, _ = buildMassMatrix(th, p)
         ev = np.linalg.eigvalsh(0.5 * (Mtot + Mtot.T))
@@ -126,14 +126,14 @@ class TestMassMatrix:
 # =====================================================================
 class TestStiffnessMatrix:
     def test_Kfull_against_golden(self, p):
-        from FLECSpy2.elements.build_stiffness_matrix import buildStiffnessMatrix
+        from flecspy.elements.build_stiffness_matrix import buildStiffnessMatrix
         th = load_golden('golden_theta0.csv').reshape(-1)
         Kfull, G0, info = buildStiffnessMatrix(th, p)
         # FD dell'Hessiano: stesso schema e relStep in Py e MATLAB -> ~1e-12 rel
         assert relnorm(Kfull, load_golden('golden_Kfull.csv')) < 1e-10
 
     def test_Kfull_symmetric(self, p):
-        from FLECSpy2.elements.build_stiffness_matrix import buildStiffnessMatrix
+        from flecspy.elements.build_stiffness_matrix import buildStiffnessMatrix
         th = load_golden('golden_theta0.csv').reshape(-1)
         Kfull, _, _ = buildStiffnessMatrix(th, p)
         assert np.linalg.norm(Kfull - Kfull.T) < 1e-18  # simmetrizzata esplicitamente
@@ -144,7 +144,7 @@ class TestStiffnessMatrix:
 # =====================================================================
 class TestConstraint:
     def test_GX_HX_Xeq_against_golden(self, p):
-        from FLECSpy2.elements.build_constraint_derivatives import buildConstraintDerivatives
+        from flecspy.elements.build_constraint_derivatives import buildConstraintDerivatives
         th = load_golden('golden_theta0.csv').reshape(-1)
         GX, HX, Xeq, _ = buildConstraintDerivatives(th, p)
         assert np.allclose(GX.reshape(-1), load_golden('golden_GX.csv').reshape(-1), rtol=1e-12, atol=1e-18)
@@ -152,7 +152,7 @@ class TestConstraint:
         assert abs(Xeq - float(load_golden('golden_Xeq.csv'))) < 1e-15
 
     def test_bladeConstraint_against_golden(self, p):
-        from FLECSpy2.elements.blade_constraint  import bladeConstraint
+        from flecspy.elements.blade_constraint  import bladeConstraint
         th = load_golden('golden_theta0.csv').reshape(-1)
         c, ceq, GC, GCeq = bladeConstraint(th, p)
         assert abs(ceq - float(load_golden('golden_ceq.csv'))) < 1e-12
@@ -162,8 +162,8 @@ class TestConstraint:
     def test_GX_equals_GCeq(self, p):
         # GX (da buildConstraintDerivatives) e GCeq (da bladeConstraint) sono
         # la stessa quantita': devono coincidere esattamente.
-        from FLECSpy2.elements.build_constraint_derivatives  import buildConstraintDerivatives
-        from FLECSpy2.elements.blade_constraint  import bladeConstraint
+        from flecspy.elements.build_constraint_derivatives  import buildConstraintDerivatives
+        from flecspy.elements.blade_constraint  import bladeConstraint
         th = load_golden('golden_theta0.csv').reshape(-1)
         GX, _, _, _ = buildConstraintDerivatives(th, p)
         _, _, _, GCeq = bladeConstraint(th, p)
@@ -175,8 +175,8 @@ class TestConstraint:
 # =====================================================================
 class TestConstraintReduction:
     def test_against_golden(self, p):
-        from FLECSpy2.elements.build_constraint_derivatives  import buildConstraintDerivatives
-        from FLECSpy2.elements.build_constraint_reduction import buildConstraintReduction
+        from flecspy.elements.build_constraint_derivatives  import buildConstraintDerivatives
+        from flecspy.elements.build_constraint_reduction import buildConstraintReduction
         th = load_golden('golden_theta0.csv').reshape(-1)
         GX, _, _, _ = buildConstraintDerivatives(th, p)
         J = int(np.argmax(np.abs(np.asarray(GX).reshape(-1))))
@@ -186,7 +186,7 @@ class TestConstraintReduction:
 
     def test_index_convention(self, p):
         # J Python (0-based) deve essere J MATLAB (1-based) - 1
-        from FLECSpy2.elements.build_constraint_derivatives  import buildConstraintDerivatives
+        from flecspy.elements.build_constraint_derivatives  import buildConstraintDerivatives
         th = load_golden('golden_theta0.csv').reshape(-1)
         GX, _, _, _ = buildConstraintDerivatives(th, p)
         J_py = int(np.argmax(np.abs(np.asarray(GX).reshape(-1))))
@@ -195,8 +195,8 @@ class TestConstraintReduction:
 
     def test_reduction_satisfies_constraint(self, p):
         # proprieta' fondamentale: GX^T Tred = 0
-        from FLECSpy2.elements.build_constraint_derivatives  import buildConstraintDerivatives
-        from FLECSpy2.elements.build_constraint_reduction import buildConstraintReduction
+        from flecspy.elements.build_constraint_derivatives  import buildConstraintDerivatives
+        from flecspy.elements.build_constraint_reduction import buildConstraintReduction
         th = load_golden('golden_theta0.csv').reshape(-1)
         GX, _, _, _ = buildConstraintDerivatives(th, p)
         J = int(np.argmax(np.abs(np.asarray(GX).reshape(-1))))
@@ -209,7 +209,7 @@ class TestConstraintReduction:
 # =====================================================================
 class TestClampMoments:
     def test_against_golden_lambda_minus5(self, p):
-        from FLECSpy2.elements.blade_clamp_moments import bladeClampMoments
+        from flecspy.elements.blade_clamp_moments import bladeClampMoments
         th = load_golden('golden_theta0.csv').reshape(-1)
         M_in, M_out, dU_dain, dU_daout = bladeClampMoments(th, -5.0, p)
         g = load_golden('golden_clampMoments.csv').reshape(-1)  # [M_in,M_out,dU_dain,dU_daout]
@@ -221,7 +221,7 @@ class TestClampMoments:
         assert abs(dU_dain - g[2]) / abs(g[2]) < 1e-10
 
     def test_guardrails(self, p):
-        from FLECSpy2.elements.blade_clamp_moments import bladeClampMoments
+        from flecspy.elements.blade_clamp_moments import bladeClampMoments
         th = load_golden('golden_theta0.csv').reshape(-1)
         p2 = dict(p); p2['constrainedTip'] = False
         with pytest.raises(ValueError):
@@ -237,11 +237,11 @@ class TestClampMoments:
 # =====================================================================
 class TestDownstreamOnMatlabEquilibrium:
     def _downstream(self, p, cfg, theta):
-        from FLECSpy2.elements.build_mass_matrix import buildMassMatrix
-        from FLECSpy2.elements.build_stiffness_matrix import buildStiffnessMatrix
-        from FLECSpy2.elements.build_constraint_derivatives  import buildConstraintDerivatives
-        from FLECSpy2.elements.build_constraint_reduction import buildConstraintReduction
-        from FLECSpy2.elements.blade_clamp_moments import bladeClampMoments
+        from flecspy.elements.build_mass_matrix import buildMassMatrix
+        from flecspy.elements.build_stiffness_matrix import buildStiffnessMatrix
+        from flecspy.elements.build_constraint_derivatives  import buildConstraintDerivatives
+        from flecspy.elements.build_constraint_reduction import buildConstraintReduction
+        from flecspy.elements.blade_clamp_moments import bladeClampMoments
         from scipy.linalg import eigh
         _, _, _, Mtot, _, _ = buildMassMatrix(theta, p)
         Kfull, G0, _ = buildStiffnessMatrix(theta, p)
@@ -297,8 +297,8 @@ class TestFullSolveAgainstMatlab:
     def result(self):
         # Chiamiamo direttamente le funzioni pure del core invece di main():
         # testa la stessa identica fisica senza passare per stampe ne' plot.
-        from FLECSpy2.config import configFLECS
-        from FLECSpy2.core import build_params, solve_equilibrium, solve_dynamics
+        from flecspy.config import configFLECS
+        from flecspy.core import build_params, solve_equilibrium, solve_dynamics
         cfg = configFLECS()
         p, theta0, extra = build_params(cfg)
         static = solve_equilibrium(p, cfg, theta0)

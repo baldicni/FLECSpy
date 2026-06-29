@@ -35,7 +35,7 @@ def load_golden(name):
 @pytest.fixture(scope='session')
 def cfg():
     """Configurazione di riferimento (quella con cui sono stati generati i golden)."""
-    from FLECSpy2.config import configFLECS
+    from flecspy.config import configFLECS
     return configFLECS()
 
 
@@ -45,8 +45,8 @@ def blade(cfg):
     Costanti di cella e mappe per la config di riferimento.
     Ritorna un dict con dtheta, dl, w, m, Kb, Jd, Jm, cd, cm e N.
     """
-    from FLECSpy2.elements.cell_constants import cellConstants
-    from FLECSpy2.elements.blade_maps import buildBladeMaps
+    from flecspy.elements.cell_constants import cellConstants
+    from flecspy.elements.blade_maps import buildBladeMaps
 
     N = cfg['N']
     expr = sp.sympify(cfg['type'].replace('csi', 'psi'))

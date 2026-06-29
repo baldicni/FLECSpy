@@ -18,18 +18,18 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 
-from FLECSpy2.config  import configFLECS
-from FLECSpy2.sweep import sweep_load_1d, save_csv
+from flecspy.config  import configFLECS
+from flecspy.sweep import sweep_load_1d, save_csv
 
 
 # ===================== CONFIGURAZIONE SWEEP =====================
-MASS_MIN = 0.25        # [kg]
-MASS_MAX = 0.50        # [kg]
-N_MASS = 160
+MASS_MIN = 0.1       # [kg]
+MASS_MAX = 1        # [kg]
+N_MASS = 80
 
 # Una o piu' compressioni xb/lb. Per una sola curva: [0.9740].
 # Per piu' curve: [0.9710, 0.9725, 0.9740].
-COMPRESSIONS = [0.9710]
+COMPRESSIONS = [0.9600]
 
 COLOR_BY_STRESS = True     # se True (e una sola compressione) colora per stress
 SAVE_CSV = None            # es. 'freq_vs_load.csv'; None = non salvare
@@ -93,7 +93,7 @@ def main():
 
     plt.xlabel('Vertical load [kg]', fontsize=13)
     plt.ylabel(r'Frequency [Hz]', fontsize=13)
-    plt.title('Resonant frequency vs vertical load', fontsize=14)
+    plt.title('Resonant frequency vs vertical load - Stability', fontsize=14)
     plt.grid(True, alpha=0.3)
     plt.box(True)
     plt.tight_layout()

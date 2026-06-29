@@ -40,7 +40,7 @@ def configFLECS():
 
     # %% Algorithm
     cfg['N'] = 64                # Number of blade partitions
-    cfg['neig'] = 6              # Number of modes
+    cfg['neig'] = 6             # Number of modes
     cfg['partition'] = 'length'  # 'length' or 'area'
     cfg['optimizer'] = 'SLSQP'   # 'SLSQP' (default, fast) or 'trust-constr' (slower, more accurate on theta)
 

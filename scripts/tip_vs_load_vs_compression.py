@@ -17,8 +17,8 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 
-from FLECSpy2.config import configFLECS
-from FLECSpy2.sweep import sweep_load_compression_2d, save_matrix_csv
+from flecspy.config import configFLECS
+from flecspy.sweep import sweep_load_compression_2d, save_matrix_csv
 
 
 # ===================== CONFIGURAZIONE SWEEP =====================
