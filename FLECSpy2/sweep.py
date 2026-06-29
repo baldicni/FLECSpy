@@ -211,3 +211,23 @@ def save_csv(path, columns, header):
     data = np.column_stack(columns)
     np.savetxt(path, data, delimiter=',', header=','.join(header),
                comments='', fmt='%.10g')
+    
+def save_matrix_csv(path, row_vals, col_vals, M, corner='', fmt='%.10g'):
+    """
+    Salva una matrice 2-D in CSV, formato 'wide':
+      - prima riga:  corner, col_vals[0], col_vals[1], ...
+      - riga i:      row_vals[i], M[i,0], M[i,1], ...
+    'M' ha forma (len(row_vals), len(col_vals)). I NaN sono scritti come 'nan'.
+    Pensata per griglie 2-D (es. f1 in funzione di compressione x Mass).
+    """
+    M = np.asarray(M, dtype=float)
+    nr, nc = M.shape
+    if len(row_vals) != nr or len(col_vals) != nc:
+        raise ValueError(
+            f'Incoherent dimensions: M is {nr}x{nc}, '
+            f'row_vals={len(row_vals)}, col_vals={len(col_vals)}')
+    lines = [','.join([str(corner)] + [fmt % c for c in col_vals])]
+    for i in range(nr):
+        lines.append(','.join([fmt % row_vals[i]] + [fmt % v for v in M[i]]))
+    with open(path, 'w') as f:
+        f.write('\n'.join(lines) + '\n')
