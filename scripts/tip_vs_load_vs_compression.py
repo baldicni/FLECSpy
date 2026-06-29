@@ -11,7 +11,7 @@ sweep con want_dynamics=False -> niente solve_dynamics, molto piu' veloce.
 Modifica i parametri nella sezione CONFIGURAZIONE SWEEP.
 """
 import sys, os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 
 import time
 import numpy as np

@@ -12,7 +12,7 @@ Modifica i parametri nella sezione CONFIGURAZIONE SWEEP qui sotto.
 I dati grezzi possono essere salvati in CSV impostando SAVE_CSV.
 """
 import sys, os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  
+
 
 import time
 import numpy as np

@@ -7,7 +7,6 @@ compressione (xb/lb). Produce heatmap 2D e superficie 3D.
 Modifica i parametri nella sezione CONFIGURAZIONE SWEEP.
 """
 import sys, os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  
 
 import time
 import numpy as np
