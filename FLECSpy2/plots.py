@@ -85,6 +85,7 @@ def plot_modes(static, dynamics, p, cfg):
     fig6 = plt.figure(6); plt.clf()
     legth, legy, legdy = [], [], []
 
+
     for ip in range(neig):
         qmode = modes[:, ip]
         dtheta_free = Tred @ qmode
@@ -112,9 +113,11 @@ def plot_modes(static, dynamics, p, cfg):
         legy.append('Mode {}'.format(ip + 1))
 
         plt.figure(6)
-        y0s = np.interp(xs, x, y)
+        y0s = np.interp(xs, np.concatenate(([0.0], x)), np.concatenate(([0.0], y)))
         plt.plot(ll, ys - y0s, linewidth=2)
         legdy.append('Mode {}'.format(ip + 1))
+
+
 
     plt.figure(4)
     plt.xlabel('l [m]'); plt.ylabel(r'$\theta$ [rad]')
