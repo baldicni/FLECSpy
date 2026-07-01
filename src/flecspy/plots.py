@@ -113,7 +113,7 @@ def plot_modes(static, dynamics, p, cfg):
         legy.append('Mode {}'.format(ip + 1))
 
         plt.figure(6)
-        y0s = np.interp(xs, np.concatenate(([0.0], x)), np.concatenate(([0.0], y)))
+        y0s = np.interp(xs, x, y, left=np.nan, right=np.nan)
         plt.plot(ll, ys - y0s, linewidth=2)
         legdy.append('Mode {}'.format(ip + 1))
 
