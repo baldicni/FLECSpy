@@ -32,7 +32,7 @@ N_MASS = 80
 COMPRESSIONS = [0.9704, 0.9706, 0.9710, 0.9716, 0.9720, 0.9740]
 
 COLOR_BY_STRESS = True     # se True (e una sola compressione) colora per stress
-SAVE_CSV = '../../csvtesi.csv'      # es. 'freq_vs_load.csv'; None = non salvare
+SAVE_CSV = None #'../../csvtesi.csv'      # es. 'freq_vs_load.csv'; None = non salvare
 # ===============================================================
 
 
