@@ -1,32 +1,14 @@
 """
-flecs_core.py
+core.py
 
-Funzioni pure (senza stampa ne' plot) che incapsulano il calcolo di FLECS,
-estratte da main.m / main.py.
+Contains the core functions of FLECS:
 
-Struttura:
-    build_params(cfg)         -> costruisce la struct 'p' del sistema
-    solve_equilibrium(p, cfg) -> STATICA: equilibrio e tutto cio' che ne deriva
-    solve_dynamics(p, static, cfg) -> DINAMICA: matrici, riduzione, modi
+    build_params(cfg)         -> builds the struct p of the software
+    solve_equilibrium(p, cfg) -> solves the statics and outputs the equilibrium
+    configuration and all the related quantities
+    solve_dynamics(p, static, cfg) -> solves the dynamics and outputs eigenfrequencies
+    and eigenmodes
 
-Regole di design concordate:
-  (1) build_params separata da solve_equilibrium: le mappe (Jd/Jm/cd/cm) e gli
-      altri parametri NON dipendono dall'ottimizzatore ne' da xb, quindi si
-      costruiscono una volta sola. Utile per 'find a working point', che varia
-      xb e ri-risolve la statica senza ricostruire le mappe.
-  (2) Confine statica/dinamica: la STATICA calcola G0, GX, HX, lambda (servono
-      per lambda, momenti, ed essendo derivati del vincolo / gradiente del
-      potenziale all'equilibrio sono quantita' statiche). La DINAMICA li RIUSA
-      dal dict 'static' invece di ricalcolarli: evita ricalcoli e, soprattutto,
-      garantisce che statica e dinamica usino esattamente lo stesso GX/HX/lambda
-      valutati sullo stesso theta.
-
-  G0 (gradiente del potenziale all'equilibrio) e' una quantita' statica e viene
-  ottenuto direttamente da bladePotential(theta, p), SENZA costruire Kfull.
-  Cosi' solve_equilibrium non dipende dalla matrice di rigidezza (dinamica).
-
-Questi moduli non alterano alcun valore numerico rispetto a main.py: spostano
-solo il codice. Il criterio di non-regressione e' che la suite pytest resti verde.
 """
 
 import numpy as np
@@ -50,14 +32,16 @@ from flecspy.elements.blade_clamp_moments import bladeClampMoments
 # =====================================================================
 def build_params(cfg):
     """
+    Constructs the 'p' struct of the system (blade characteristics, affine transformations (maps),
+    gravitational coefficients) and the initial configuration of the angles theta0.
     Costruisce la struct 'p' del sistema e theta0, replicando la sezione di
     main.m che va da cellConstants alla definizione di theta0.
 
-    Restituisce:
-        p      : dict dei parametri (mappe, dl, m, Kb, dtheta, gcoeff, flag, xb)
-        theta0 : condizione iniziale geometrica (1-D)
-        extra  : dict con quantita' di supporto utili a stampe/plot
-                 (dtheta, dl, w, m, Kb, prf, costanti geometriche)
+    Returns:
+        p      : parameters struct (maps, dl, m, Kb, dtheta, gcoeff, flag, xb)
+        theta0 : initial angles configuration
+        extra  : dict with useful quantities for plots and calculations
+                 (dtheta, dl, w, m, Kb, prf, geoemtric constants)
     """
     N = cfg['N']
     wb, hb, lb, rb = cfg['wb'], cfg['hb'], cfg['lb'], cfg['rb']
@@ -66,9 +50,7 @@ def build_params(cfg):
     xb = cfg['xb']
     Eb, rhob = cfg['Eb'], cfg['rhob']
 
-    # Profilo simbolico (come in main.m). cellConstants integra rispetto alla
-    # variabile del profilo: riproduciamo il comportamento MATLAB osservato
-    # (narea = psi - 0.327 psi^2) rinominando csi -> psi.
+    # Symbolic reconstruction of the blade shape
     csi = sp.symbols('csi')
     if type_ == 'tama':
         c1, c2, c3, beta = -0.377, 1.377, 0.195, 1.361
@@ -82,7 +64,7 @@ def build_params(cfg):
 
     dtheta, dl, w, m, Kb = cellConstants(N, wb, lb, rb, hb, Eb, rhob, prf_psi, cfg['partition'])
 
-    # Flag di configurazione
+    # Configurations flags
     constrainedTip = isinstance(aout, (int, float)) and not isinstance(aout, bool)
     constrainedLength = isinstance(xb, (int, float)) and not isinstance(xb, bool)
 
@@ -103,11 +85,10 @@ def build_params(cfg):
     Jd, Jm, cd, cm = buildBladeMaps(N, constrainedTip, ain, aout)
     p['Jd'], p['Jm'], p['cd'], p['cm'] = Jd, Jm, cd, cm
 
-    # gcoeff = flipud(cumsum(flipud(m))) - 0.5*m
     mflat = m.reshape(-1)
     p['gcoeff'] = (np.flip(np.cumsum(np.flip(mflat))) - 0.5 * mflat).reshape(-1, 1)
 
-    # theta0 = ain + cumsum(dtheta(1:N)), poi tolto l'ultimo se constrainedTip
+    
     theta0 = ain + np.cumsum(dtheta[:N])
     if constrainedTip:
         theta0 = theta0[:-1]
@@ -304,10 +285,17 @@ def solve_dynamics(p, static, cfg):
     evals_all, Vr_all = eigh(Kred, Mred)
     order = np.argsort(np.abs(evals_all))
     sel = order[:neig]
-    evals = np.real(evals_all[sel])
+    evals = evals_all[sel]
     modes = Vr_all[:, sel]
-    #freqs = np.sqrt(np.maximum(evals, 0)) / (2 * np.pi)
-    freqs = np.emath.sqrt(evals) / (2 * np.pi)
+
+    # Negative eigenvalues correspond to unstable modes (imaginary angular
+    # frequency). They are encoded as negative frequencies: a value -f means
+    # an imaginary frequency of magnitude f, i.e. an exponentially growing mode.
+    freqs = np.sign(evals) * np.sqrt(np.abs(evals)) / (2 * np.pi)
+
+    for i, f in enumerate(freqs, start=1):
+        if f < 0:
+            print(f"Negative frequency {f:.6g} Hz associated to mode {i}")
 
     return dict(Mtot=Mtot, Kfull=Kfull, Ktot=Ktot, Mred=Mred, Kred=Kred,
                 freqs=freqs, evals=evals, modes=modes,
