@@ -37,10 +37,11 @@ def plot_profile(static, fignum=2):
     """Profilo di equilibrio x-y, come figure(2) di main.m."""
     import matplotlib.pyplot as plt
     plt.figure(fignum); plt.clf()
-    plt.plot(static['x'], static['y'], linewidth=2)
+    plt.plot(static['x'], static['y'], linewidth=4, color="orangered")
     plt.xlabel('x [m]'); plt.ylabel('y [m]')
     plt.axis('equal'); plt.grid(True); plt.box(True)
-    plt.title('Profile')
+    plt.title('Static profile of the blade')
+   
     
 
 
@@ -53,13 +54,15 @@ def plot_stress(static, p, cfg, fignum=3):
     yldb, UTSb = cfg['yldb'], cfg['UTSb']
     ll = np.cumsum(dl)
     plt.figure(fignum); plt.clf()
-    plt.plot(ll, s, linewidth=2)
-    plt.plot(ll, yldb * np.ones(N), ':', linewidth=2, color='black')
-    plt.plot(ll, UTSb * np.ones(N), ':', linewidth=2, color='black')
+    plt.plot(ll, s, linewidth=4, color = "darkcyan")
+    plt.plot(ll, yldb * np.ones(N), '--', linewidth=2, color='black', label = "Yield strength")
+    plt.plot(ll, UTSb * np.ones(N), '.', linewidth=2, color='black', label = "UTS")
     plt.ylim([0, max(np.max(s), UTSb)])
     plt.grid(True); plt.box(True)
     plt.xlabel('l [m]'); plt.ylabel('s [Pa]')
-    plt.title('Stress')
+    plt.title('Stress along the blade')
+    plt.ylim(np.min(s)/10, UTSb*1.1)
+    plt.legend()
     
 
 
@@ -82,11 +85,13 @@ def plot_modes(static, dynamics, p, cfg):
 
     fig4 = plt.figure(4); plt.clf()
     fig5 = plt.figure(5); plt.clf()
-    fig6 = plt.figure(6); plt.clf()
+    fig6 = plt.figure(6, figsize=(8,5.2)); plt.clf()
     legth, legy, legdy = [], [], []
 
+    cmap = plt.get_cmap('viridis')
+    colors = cmap(np.linspace(0, 0.85, neig))
 
-    for ip in range(neig):
+    for ip, color in zip(range(neig), colors):
         qmode = modes[:, ip]
         dtheta_free = Tred @ qmode
         if constrainedTip:
@@ -114,8 +119,8 @@ def plot_modes(static, dynamics, p, cfg):
 
         plt.figure(6)
         y0s = np.interp(xs, x, y, left=np.nan, right=np.nan)
-        plt.plot(ll, ys - y0s, linewidth=2)
-        legdy.append('Mode {}'.format(ip + 1))
+        plt.plot(ll, ys - y0s, linewidth=4, color = color)
+        legdy.append(r'$f_{} = {:.3G}\ \mathrm{{Hz}}$'.format(ip + 1, dynamics['freqs'][ip]))
 
 
 
@@ -137,5 +142,5 @@ def plot_modes(static, dynamics, p, cfg):
     plt.xlabel('l [m]'); plt.ylabel(r'$\delta y$ [m]')
     plt.box(True); plt.grid(True)
     plt.legend(legdy, loc='upper left')
-    plt.title('Eigen states - Perturbation')
+    plt.title('Modal shapes and eigenfrequencies')
     
