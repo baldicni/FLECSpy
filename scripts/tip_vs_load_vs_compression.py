@@ -22,13 +22,13 @@ from flecspy.sweep import sweep_load_compression_2d, save_matrix_csv
 
 
 # ===================== CONFIGURAZIONE SWEEP =====================
-MASS_MIN = 0.01
-MASS_MAX = 0.1
-N_MASS = 100
+MASS_MIN = 0.3
+MASS_MAX = 0.5
+N_MASS = 50
 
-COMP_MIN = 0.89
-COMP_MAX = 0.91
-N_COMP = 100
+COMP_MIN = 0.9700
+COMP_MAX = 0.9720
+N_COMP = 20
 
 SHOW_HEATMAP = True
 SHOW_SURFACE = True

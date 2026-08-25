@@ -12,22 +12,23 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 
-from flecspy.config import configFLECS
+from flecspy.config import configCRYOGAS, configFLECS
 from flecspy.sweep import sweep_load_compression_2d, save_matrix_csv
 
 
 # ===================== CONFIGURAZIONE SWEEP =====================
-MASS_MIN = 0.001
-MASS_MAX = 0.01
-N_MASS = 100
+MASS_MIN = 0.35        # [kg]
+MASS_MAX = 0.5        # [kg]
+N_MASS = 80
 
-COMP_MIN = 0.86
-COMP_MAX = 0.93
-N_COMP = 100
+COMP_MIN = 0.9650
+COMP_MAX = 0.9760
+N_COMP = 300
+
 
 SHOW_HEATMAP = True
 SHOW_SURFACE = True
-SAVE_CSV = None
+SAVE_CSV = '../../csvtesi.csv'
 
 # ===============================================================
 
@@ -60,7 +61,7 @@ def main():
         # extent: [xmin,xmax,ymin,ymax]; origin lower per asse y crescente
         im = plt.imshow(F1, aspect='auto', origin='lower',
                         extent=[MASS_MIN, MASS_MAX, COMP_MIN * 100, COMP_MAX * 100],
-                        cmap='viridis')
+                        cmap='cool')
         cb = plt.colorbar(im)
         cb.set_label(r'$f_1$ [Hz]', fontsize=12)
         plt.xlabel('Mass [kg]', fontsize=13)
@@ -73,7 +74,7 @@ def main():
         MM, CC = np.meshgrid(mass_vec, comp_vec * 100)
         fig = plt.figure(figsize=(8, 6))
         ax = fig.add_subplot(111, projection='3d')
-        surf = ax.plot_surface(MM, CC, F1, cmap='viridis',
+        surf = ax.plot_surface(MM, CC, F1, cmap='cool',
                                edgecolor='none', antialiased=True)
         cb = fig.colorbar(surf, shrink=0.6, aspect=12)
         cb.set_label(r'$f_1$ [Hz]', fontsize=12)

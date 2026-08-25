@@ -18,12 +18,12 @@ from flecspy.sweep import sweep_load_1d, save_csv
 
 
 # ===================== CONFIGURAZIONE SWEEP =====================
-MASS_MIN = 0.38        # [kg]
-MASS_MAX = 0.42        # [kg]
+MASS_MIN = 0.35        # [kg]
+MASS_MAX = 0.5        # [kg]
 N_MASS = 80
 
 # Una o piu' compressioni xb/lb.
-COMPRESSIONS = [0.9706]
+COMPRESSIONS = [0.9704, 0.9706, 0.9710, 0.9716, 0.9720, 0.9740]
 
 SAVE_CSV = None        # es. 'tip_vs_load.csv'; None = non salvare
 # ===============================================================
@@ -36,14 +36,17 @@ def main():
 
     plt.figure(figsize=(7.5, 5))
 
-    for comp in COMPRESSIONS:
+    cmap = plt.get_cmap('afmhot')
+    colors = cmap(np.linspace(0, 0.85, len(COMPRESSIONS)))
+
+    for comp, color in zip(COMPRESSIONS, colors):
         # want_dynamics=False: serve solo la statica (tip height) -> piu' veloce
         res = sweep_load_1d(cfg, mass_vec, compression=comp,
                             want_dynamics=False, verbose=True)
         ok = res['converged']
         label = f'$x_b/l_b$ = {comp:.4f}'
-        plt.plot(res['mass'][ok], res['htip'][ok] * 1e3, 'o-',
-                 linewidth=2, markersize=4, label=label)
+        plt.plot(res['mass'][ok], res['htip'][ok] * 1e3,
+                 linewidth=1.5, label=label, color=color)
         print(f'compression {comp:.4f}: {int(ok.sum())}/{len(mass_vec)} convergent')
 
         if SAVE_CSV and comp == COMPRESSIONS[0]:
@@ -60,7 +63,7 @@ def main():
 
     plt.xlabel('Vertical load [kg]', fontsize=13)
     plt.ylabel('Tip height [mm]', fontsize=13)
-    plt.title('Tip height vs vertical load - Stability', fontsize=14)
+    plt.title('Tip height vs vertical load', fontsize=14)
     plt.grid(True, alpha=0.3)
     plt.box(True)
     plt.tight_layout()

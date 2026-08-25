@@ -18,21 +18,21 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 
-from flecspy.config  import configFLECS
+from flecspy.config  import configCRYOGAS, configFLECS
 from flecspy.sweep import sweep_load_1d, save_csv
 
 
 # ===================== CONFIGURAZIONE SWEEP =====================
-MASS_MIN = 0.1       # [kg]
-MASS_MAX = 1        # [kg]
+MASS_MIN = 0.35        # [kg]
+MASS_MAX = 0.5        # [kg]
 N_MASS = 80
 
 # Una o piu' compressioni xb/lb. Per una sola curva: [0.9740].
 # Per piu' curve: [0.9710, 0.9725, 0.9740].
-COMPRESSIONS = [0.9600]
+COMPRESSIONS = [0.9704, 0.9706, 0.9710, 0.9716, 0.9720, 0.9740]
 
 COLOR_BY_STRESS = True     # se True (e una sola compressione) colora per stress
-SAVE_CSV = None            # es. 'freq_vs_load.csv'; None = non salvare
+SAVE_CSV = '../../csvtesi.csv'      # es. 'freq_vs_load.csv'; None = non salvare
 # ===============================================================
 
 
@@ -42,6 +42,9 @@ def main():
     mass_vec = np.linspace(MASS_MIN, MASS_MAX, N_MASS)
 
     plt.figure(figsize=(7.5, 5))
+
+    cmap = plt.get_cmap('afmhot')
+    colors = cmap(np.linspace(0, 0.85, len(COMPRESSIONS)))
 
     if len(COMPRESSIONS) == 1 and COLOR_BY_STRESS:
         # Curva singola colorata per stress massimo (come l'esempio MATLAB,
@@ -70,12 +73,12 @@ def main():
                      ['Mass_kg', 'f1_Hz', 'MaxStress_MPa'])
     else:
         # Piu' compressioni: una curva per ciascuna.
-        for comp in COMPRESSIONS:
+        for comp, color in zip(COMPRESSIONS, colors):
             res = sweep_load_1d(cfg, mass_vec, compression=comp,
                                 want_dynamics=True, verbose=False)
             ok = res['converged']
-            plt.plot(res['mass'][ok], res['f1'][ok], '-', linewidth=2,
-                     label=f'$x_b/l_b$ = {comp:.4f}')
+            plt.plot(res['mass'][ok], res['f1'][ok], '-', linewidth=1.5,
+                     label=f'$x_b/l_b$ = {comp:.4f}', color=color)
             print(f'compression {comp:.4f}: {int(ok.sum())}/{len(mass_vec)} convergent')
         plt.legend(fontsize=11, title='Compression')
 
@@ -93,7 +96,7 @@ def main():
 
     plt.xlabel('Vertical load [kg]', fontsize=13)
     plt.ylabel(r'Frequency [Hz]', fontsize=13)
-    plt.title('Resonant frequency vs vertical load - Stability', fontsize=14)
+    plt.title('First resonant frequency vs vertical load', fontsize=14)
     plt.grid(True, alpha=0.3)
     plt.box(True)
     plt.tight_layout()

@@ -19,7 +19,7 @@ import sys, os
 import time
 import numpy as np
 
-from flecspy.config import configFLECS
+from flecspy.config import configCRYOGAS, configFLECS 
 from flecspy.core import build_params, solve_equilibrium, solve_dynamics
 
 

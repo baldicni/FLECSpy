@@ -18,18 +18,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import TwoSlopeNorm
 
-from flecspy.config import configFLECS
+from flecspy.config import configCRYOGAS
 from flecspy.sweep import sweep_load_compression_2d
 
 
 # ===================== CONFIGURAZIONE SWEEP =====================
-MASS_MIN = 0.30
-MASS_MAX = 0.50
-N_MASS = 40
+MASS_MIN = 1
+MASS_MAX = 8
+N_MASS = 100
 
-COMP_MIN = 0.9705
-COMP_MAX = 0.9755
-N_COMP = 40
+COMP_MIN = 0.90
+COMP_MAX = 0.99
+N_COMP = 100
 
 SHOW_HEATMAP = True
 SHOW_SURFACE = True
