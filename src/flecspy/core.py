@@ -216,11 +216,13 @@ def solve_equilibrium(p, cfg, theta0=None):
         HX = np.empty((0, 0))
         lambda_ = 0.0
 
-    # --- Momenti di clamp (statica), solo se applicabile ---
-    if constrainedTip and constrainedLength:
-        M_in, M_out, _, _ = bladeClampMoments(theta, lambda_, p)
+        # --- Momenti di clamp (statica) ---
+    # Richiede solo constrainedTip: se non c'e' vincolo orizzontale,
+    # lambda_ vale 0.0 (assegnato sopra) e il termine di vincolo si annulla.
+    if constrainedTip:
+        M_in, M_out, dU_dain, dU_daout = bladeClampMoments(theta, lambda_, p)
     else:
-        M_in = M_out = None
+        M_in = M_out = dU_dain = dU_daout = None
 
     return dict(theta=theta, theta_full=theta_full, theta_m=theta_m,
                 x=x, y=y, xtip=xtip, htip=htip, tipAngle=tipAngle,
@@ -281,21 +283,91 @@ def solve_dynamics(p, static, cfg):
         Mred = Mtot
         Kred = Ktot
 
-    # Problema agli autovalori generalizzato (eigs 'smallestabs' -> eigh + sort)
-    evals_all, Vr_all = eigh(Kred, Mred)
+    # # Problema agli autovalori generalizzato (eigs 'smallestabs' -> eigh + sort)
+    # evals_all, Vr_all = eigh(Kred, Mred)
+    # order = np.argsort(np.abs(evals_all))
+    # sel = order[:neig]
+    # evals = evals_all[sel]
+    # modes = Vr_all[:, sel]
+
+    # # Negative eigenvalues correspond to unstable modes (imaginary angular
+    # # frequency). They are encoded as negative frequencies: a value -f means
+    # # an imaginary frequency of magnitude f, i.e. an exponentially growing mode.
+    # freqs = np.sign(evals) * np.sqrt(np.abs(evals)) / (2 * np.pi)
+
+
+
+        # --- Problema agli autovalori generalizzato ---------------------------
+    # Formulazione INVERTITA:  M a = nu (K + sigma M) a   invece di
+    # K a = omega^2 M a, da cui  omega^2 = 1/nu - sigma.
+    #
+    # Motivo: eigh fattorizza per Cholesky la SECONDA matrice, e cond(M) ~ N^4
+    # (il nucleo non-locale tende a rango uno al raffinarsi della mesh) mentre
+    # cond(K) e' ordini di grandezza minore. Fattorizzando K si perdono molte
+    # meno cifre, e il modo soffice diventa l'autovalore piu' GRANDE del nuovo
+    # pencil, cioe' quello calcolato con la migliore accuratezza relativa.
+    #
+    # Lo shift sigma e' necessario solo dove K non e' definita positiva (al
+    # punto di lavoro e in regione instabile): viene attivato automaticamente
+    # se il Cholesky di K fallisce, e dimensionato sulla scala di K stessa.
+    from scipy.linalg import cholesky, LinAlgError
+
+    def _try_inverted(Kmat, Mmat, sigma):
+        """Risolve il pencil invertito con shift dato. None se non fattorizzabile."""
+        try:
+            cholesky(Kmat + sigma * Mmat, lower=True)     # test di positivita'
+        except LinAlgError:
+            return None
+        nu, V = eigh(Mmat, Kmat + sigma * Mmat)
+        good = nu != 0.0
+        if not np.all(good):
+            return None
+        return 1.0 / nu - sigma, V
+
+    evals_all = Vr_all = None
+
+    # 1) tentativo senza shift: e' il caso generico, lontano dal punto di lavoro
+    res_inv = _try_inverted(Kred, Mred, 0.0)
+
+    # 2) se K non e' definita positiva, si introduce uno shift crescente.
+    #    La scala di partenza e' data dalla traccia di K rapportata a quella di
+    #    M, che ha le dimensioni di omega^2 ed e' quindi la scala naturale del
+    #    problema; si raddoppia finche' il Cholesky non riesce.
+    if res_inv is None:
+        scale = float(np.trace(Kred) / np.trace(Mred))
+        sigma = abs(scale) if scale != 0.0 else 1.0
+        for _ in range(60):
+            res_inv = _try_inverted(Kred, Mred, sigma)
+            if res_inv is not None:
+                break
+            sigma *= 2.0
+
+    if res_inv is not None:
+        evals_all, Vr_all = res_inv
+    else:
+        # 3) fallback: formulazione classica
+        evals_all, Vr_all = eigh(Kred, Mred)
+
     order = np.argsort(np.abs(evals_all))
     sel = order[:neig]
     evals = evals_all[sel]
     modes = Vr_all[:, sel]
 
-    # Negative eigenvalues correspond to unstable modes (imaginary angular
-    # frequency). They are encoded as negative frequencies: a value -f means
-    # an imaginary frequency of magnitude f, i.e. an exponentially growing mode.
-    freqs = np.sign(evals) * np.sqrt(np.abs(evals)) / (2 * np.pi)
+    # freqs contiene il MODULO di omega/2pi. Per evals > 0 e' la frequenza di
+    # oscillazione; per evals < 0 la pulsazione e' immaginaria pura, il modo non
+    # oscilla ma cresce esponenzialmente con costante di tempo 1/|omega|, e il
+    # valore restituito e' |omega|/2pi. Il segno di evals e' quindi l'unica
+    # informazione sulla stabilita': va letto la' e non in freqs.
+    freqs = np.sqrt(np.abs(evals)) / (2 * np.pi)
 
-    for i, f in enumerate(freqs, start=1):
-        if f < 0:
-            print(f"Negative frequency {f:.6g} Hz associated to mode {i}")
+    unstable = evals < 0
+    if np.any(unstable):
+        for i in np.where(unstable)[0]:
+            print(f"[unstable] x_b/l_b = {p['xb']/cfg['lb']:.6f}, "
+                  f"Mass = {p['Mass']:.6f} kg: mode {i+1} has "
+                  f"omega^2 = {evals[i]:.6e} < 0 (purely imaginary angular "
+                  f"frequency); |omega|/2pi = {freqs[i]:.6g} Hz, "
+                  f"growth time 1/|omega| = {1.0/np.sqrt(abs(evals[i])):.6g} s")
 
     return dict(Mtot=Mtot, Kfull=Kfull, Ktot=Ktot, Mred=Mred, Kred=Kred,
                 freqs=freqs, evals=evals, modes=modes,
